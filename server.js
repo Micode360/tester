@@ -9,6 +9,8 @@ const mongoose = require("mongoose");
 const moment = require('moment');
 const exerciseModel = require("./models/exercise.model");
 
+const exerciseLogModel = require("./models/exercise.model").exerciseModel;
+
 require('dotenv').config();
 
 //Connect to DB
@@ -124,12 +126,13 @@ app.get("/api/exercise/log", function(req, res, next) {
         options: limitOptions
       })
       .exec((err, data) => {
+        console.log(data);
         if (err) next(err);
         if (data) {
           let displayData = {
             id: data.id,
             username: data.username,
-            count: data.count
+            count: 0
           };
           if (from) displayData.from = from.toDateString();
           if (to) displayData.to = to.toDateString();
@@ -144,7 +147,7 @@ app.get("/api/exercise/log", function(req, res, next) {
               return true;
             }
           });
-          console.log(displayData);
+          displayData.count = displayData.log.length
           res.json(displayData);
         } else {
           next();
