@@ -2,8 +2,8 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const multer = require("multer");
-const upload = multer();
+// const multer = require("multer");
+// const upload = multer();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const moment = require('moment');
@@ -111,12 +111,11 @@ app.get("/api/exercise/log", function(req, res, next) {
   let userId = req.query.userId;
   console.log(userId);
   if (userId) {
-    let arrayOfExercise = [];
+    let from = req.query.from ? new Date(req.query.from) : "";
+    let to = req.query.to ? new Date(req.query.to) : "";
     let limit = Number(req.query.limit);
-    let from =  moment(req.query.from).format('ddd MMM DD YYYY').toString()
-    let to = moment(req.query.to).format('ddd MMM DD YYYY').toString()
-    // const limitOptions = {};
-    // if (limit) limitOptions.limit = limit;
+    const limitOptions = {};
+    if (limit) limitOptions.limit = limit;
 
     exerciseModel
       .findById(userId)
@@ -137,20 +136,17 @@ app.get("/api/exercise/log", function(req, res, next) {
           };
           if (from) displayData.from = from.toDateString();
           if (to) displayData.to = to.toDateString();
-           data.exercise.filter(item => {
-            if(limit){
-              if(index + 1 <= limit) arrayOfExercise.push(item);
-             }
-             if(from){
-              if(Date.parse(item.date) > Date.parse(from)) arrayOfExercise.push(item);
-             }
-             else if(to){
-              if(Date.parse(item.date) < Date.parse(to)) arrayOfExercise.push(item);
-             }else{
-              arrayOfExercise.push(item);
-             }
+          displayData.log = data.exercise.filter(item => {
+            if (from && to) {
+              return item.date >= from && item.date <= to;
+            } else if (from) {
+              return item.date >= from;
+            } else if (to) {
+              return item.date <= to;
+            } else {
+              return true;
+            }
           });
-          displayData.log = arrayOfExercise;
           displayData.count = displayData.log.length
           res.json(displayData);
         } else {
@@ -164,32 +160,35 @@ app.get("/api/exercise/log", function(req, res, next) {
   }
 });
 
-app.get('/send',(req,res) => {
-      let limitValue = Number(req.query.limit);
-      let from =  moment(req.query.from).format('ddd MMM DD YYYY').toString()
-      let to = moment(req.query.to).format('ddd MMM DD YYYY').toString()
 
-      let arr = [];
-      var log = [
-          {"_id":"601938173c4e2318689f86f9","description":"its me, yiu","duration":14,"date":"Mon Jan 18 2021"},
-          {"_id":"601958173c4e2318fftr4334","description":"bai yi men shu li","duration":2,"date":"Wed Feb 3 2021"},
-          {"_id":"6sfsfdsdfc4e2318fftr4334","description":"Mai description","duration":6,"date":"thurs Jun 23 2020"},
-          {"_id":"6sfsfds53cdgd6fdgfdfftrf","description":"The day it all began","duration":10,"date":"Fri Mar 16 2011"}
-      ]
+// app.get('/send',(req,res) => {
+//       let limitValue = Number(req.query.limit);
+//       let from =  moment(req.query.from).format('ddd MMM DD YYYY').toString()
+//       let to = moment(req.query.to).format('ddd MMM DD YYYY').toString()
 
-    log.filter((item, index) => {
-             if(limitValue){
-              if(index + 1 <= limitValue) arr.push(item);
-             }
-             if(from){
-              if(Date.parse(item.date) > Date.parse(from)) arr.push(item);
-             }
-             if(to){
-              if(Date.parse(item.date) < Date.parse(to)) arr.push(item);
-             }
-    });
-    res.send(arr);
-});
+//       let arr = [];
+//       var log = [
+//           {"_id":"601938173c4e2318689f86f9","description":"its me, yiu","duration":14,"date":"Mon Jan 18 2021"},
+//           {"_id":"601958173c4e2318fftr4334","description":"bai yi men shu li","duration":2,"date":"Wed Feb 3 2021"},
+//           {"_id":"6sfsfdsdfc4e2318fftr4334","description":"Mai description","duration":6,"date":"thurs Jun 23 2020"},
+//           {"_id":"6sfsfds53cdgd6fdgfdfftrf","description":"The day it all began","duration":10,"date":"Fri Mar 16 2011"}
+//       ]
+
+//     log.filter((item, index) => {
+//              if(limitValue){
+//               if(index + 1 <= limitValue) arr.push(item);
+//              }
+//              if(from){
+//               if(Date.parse(item.date) > Date.parse(from)) arr.push(item);
+//              }
+//              if(to){
+//               if(Date.parse(item.date) < Date.parse(to)) arr.push(item);
+//              }
+//     });
+//     res.send(arr);
+// });
+
+
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
